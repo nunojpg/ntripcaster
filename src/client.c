@@ -243,7 +243,8 @@ void client_login(connection_t *con, char *expr)
 
 	write_log(LOG_DEFAULT, "Accepted client %d [%s] from [%s] on mountpoint [%s] using agent [%]. %d clients connected", con->id,
 		nullcheck_string(con->user), con_host (con), source->food.source->audiocast.mount, get_user_agent(con), info.num_clients);
-
+//	pokreni thread za hvatanje gga
+	capture_gga(con);
 //	greet_client(con, source->food.source);
 }
 
@@ -838,5 +839,37 @@ print_authentication_scheme() {
 
 	thread_mutex_unlock(&authentication_mutex);
 
+}
+
+void
+*capture_gga(void *conarg){
+
+	coonnection_t *con = (connection_t *) conarg;
+	char line [BUFSIZE] = "";
+	chat GGA [[BUFSIZE] = "";
+	int res;
+	
+	thread_init();
+	
+	if (!con){
+		thread_exit(0);
+	}
+	
+	sock_set_blocking(con->sock, SOCK_NONBLOCK);
+	
+	if ((res=sock_read_lines(con->sock, GGA, BUFSIZE))<=0){
+		kick_not_connected (con, "Socket error!");
+		thread_exit(0);
+	}
+	
+	if (ice_strncmp(GGA, "$GPGGA", 6) == 0) {
+		write_log("Pos: %s", GGA);
+	}else{
+		write_400(con);
+		kick_not_connected (con, "Invalid GGA!");
+	}
+	
+	thread_exit(0);
+	return NULL;
 }
 
