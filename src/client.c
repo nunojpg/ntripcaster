@@ -846,7 +846,7 @@ void
 
 	coonnection_t *con = (connection_t *) conarg;
 	char line [BUFSIZE] = "";
-	chat GGA [[BUFSIZE] = "";
+	char GGA [BUFSIZE] = "";
 	int res;
 	
 	thread_init();
